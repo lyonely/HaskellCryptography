@@ -19,12 +19,15 @@ via the aymmetric RSA.
 -- PART 1 : asymmetric encryption
 
 gcd :: Int -> Int -> Int
-gcd
-  = undefined
+gcd m n
+    | n == 0        = m
+    | otherwise     = gcd n (m `mod` n)
 
 phi :: Int -> Int
-phi
-  = undefined
+--Pre: m >= 1
+phi m
+    | m == 1        = 1
+    | otherwise     = length [x | x <- [1..m], gcd m x == 1]
 
 -- Calculates (u, v, d) the gcd (d) and Bezout coefficients (u and v)
 -- such that au + bv = d
@@ -44,8 +47,16 @@ modPow
 
 -- Returns the smallest integer that is coprime with phi
 smallestCoPrimeOf :: Int -> Int
-smallestCoPrimeOf
-  = undefined
+smallestCoPrimeOf phi
+    = smallestCoPrimeOf' phi n
+    where
+        n = 2
+        smallestCoPrimeOf' :: Int -> Int -> Int
+        smallestCoPrimeOf' x y
+            | gcd x y == 1      = y
+            | otherwise         = smallestCoPrimeOf' x (y + 1)
+
+
 
 -- Generates keys pairs (public, private) = ((e, n), (d, n))
 -- given two "large" distinct primes, p and q
