@@ -32,18 +32,31 @@ phi m
 -- Calculates (u, v, d) the gcd (d) and Bezout coefficients (u and v)
 -- such that au + bv = d
 computeCoeffs :: Int -> Int -> (Int, Int)
-computeCoeffs
-  = undefined
+computeCoeffs a b
+    | a == 0 && b > 0   = (0,1)
+    | b == 0            = (1,0)
+    | otherwise         = (v , (u - q * v))
+    where
+        (q , r) = a `quotRem` b
+        (u , v) = computeCoeffs b r
+
 
 -- Inverse of a modulo m
 inverse :: Int -> Int -> Int
-inverse
-  = undefined
+inverse a m
+    = u `mod` m
+    where (u , v) = computeCoeffs a m
 
 -- Calculates (a^k mod m)
 modPow :: Int -> Int -> Int -> Int
-modPow
-  = undefined
+modPow a k m
+    | k == 0            = 1 `mod` m
+    | k == 1            = a `mod` m
+    | k `mod` 2 == 0    = modPow b j m
+    | k `mod` 2 == 1    = (a * (modPow b j m)) `mod` m
+    where
+        j = k `div` 2
+        b = a ^ 2 `mod` m
 
 -- Returns the smallest integer that is coprime with phi
 smallestCoPrimeOf :: Int -> Int
@@ -61,17 +74,21 @@ smallestCoPrimeOf phi
 -- Generates keys pairs (public, private) = ((e, n), (d, n))
 -- given two "large" distinct primes, p and q
 genKeys :: Int -> Int -> ((Int, Int), (Int, Int))
-genKeys
-  = undefined
+genKeys p q
+    = ((e , n), (d , n))
+  where
+      n = p * q
+      e = smallestCoPrimeOf ((p - 1) * (q - 1))
+      d = inverse e ((p - 1) * (q - 1))
 
 -- RSA encryption/decryption
 rsaEncrypt :: Int -> (Int, Int) -> Int
-rsaEncrypt
-  = undefined
+rsaEncrypt x (e , n)
+  = modPow x e n
 
 rsaDecrypt :: Int -> (Int, Int) -> Int
-rsaDecrypt
-  = undefined
+rsaDecrypt c (d , n)
+  = modPow c d n
 
 -------------------------------------------------------------------------------
 -- PART 2 : symmetric encryption
