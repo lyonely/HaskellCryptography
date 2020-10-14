@@ -26,8 +26,19 @@ gcd m n
 phi :: Int -> Int
 --Pre: m >= 1
 phi m
-    | m == 1        = 1
-    | otherwise     = length [x | x <- [1..m], gcd m x == 1]
+    | m == 1 || m == 0      = m
+    | otherwise             = phi' m x
+    where
+        x = 1
+        phi' :: Int -> Int -> Int
+        phi' a b
+            | a == b            = 0
+            | gcd a b ==  1     = 1 + phi' a (b + 1)
+            | otherwise         = phi' a (b + 1)
+
+
+
+--length [x | x <- [1..m], gcd m x == 1]
 
 -- Calculates (u, v, d) the gcd (d) and Bezout coefficients (u and v)
 -- such that au + bv = d
