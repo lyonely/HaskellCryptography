@@ -127,23 +127,32 @@ rsaDecrypt c (d, n)
 
 -- Returns position of a letter in the alphabet
 toInt :: Char -> Int
-toInt
-  = undefined
+-- Pre: c must be a letter
+toInt c
+    = ord c - ord 'a'
+
 
 -- Returns the n^th letter
 toChar :: Int -> Char
-toChar
-  = undefined
+-- Pre: 0 <= num <= 25
+toChar num
+    = chr (num + ord 'a')
 
 -- "adds" two letters
 add :: Char -> Char -> Char
-add
-  = undefined
+-- Pre: a and b are letters
+add a b
+    = toChar (x `mod` 26)
+    where
+        x = toInt a + toInt b
 
 -- "substracts" two letters
 substract :: Char -> Char -> Char
-substract
-  = undefined
+--Pre: a and b are letters
+substract a b
+    = toChar (y `mod` 26)
+    where
+        y = toInt a - toInt b
 
 -- the next functions present
 -- 2 modes of operation for block ciphers : ECB and CBC
@@ -152,21 +161,40 @@ substract
 -- ecb (electronic codebook) with block size of a letter
 --
 ecbEncrypt :: Char -> String -> String
-ecbEncrypt
-  = undefined
+ecbEncrypt k m
+    = if null m
+      then ""
+      else e : ecbEncrypt k (tail m)
+      where
+          e = add (head m) k
 
 ecbDecrypt :: Char -> String -> String
-ecbDecrypt
-  = undefined
+ecbDecrypt k c
+    = if null c
+      then ""
+      else d : ecbDecrypt k (tail c)
+      where
+          d = substract (head c) k
 
 -- cbc (cipherblock chaining) encryption with block size of a letter
 -- initialisation vector iv is a letter
 -- last argument is message m as a string
 --
 cbcEncrypt :: Char -> Char -> String -> String
-cbcEncrypt
-  = undefined
+cbcEncrypt k iv x
+    = if null x
+      then ""
+      else c : cbcEncrypt k c (tail x)
+      where
+          c = add b k
+          b = add (head x) iv
 
 cbcDecrypt :: Char -> Char -> String -> String
-cbcDecrypt
-  = undefined
+cbcDecrypt k iv c
+    = if null c
+      then ""
+      else x : cbcDecrypt k c' (tail c)
+      where
+          x = substract d iv
+          d = substract c' k
+          c' = head c
