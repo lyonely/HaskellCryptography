@@ -18,13 +18,20 @@ via the aymmetric RSA.
 -------------------------------------------------------------------------------
 -- PART 1 : asymmetric encryption
 
+-- Calculates the greatest common divisor of two numbers, m and n
+-- Resembles Euclid's Algorithm for calculating gcd of two numbers
 gcd :: Int -> Int -> Int
+-- Pre: m, n >= 0
 gcd m n
-    | n == 0        = m
-    | otherwise     = gcd n (m `mod` n)
+    | n == 0                = m
+    | otherwise             = gcd n (m `mod` n)
 
+
+-- Calculates the Euler phi or Totient function, which is the number of
+-- integers in the range 1 to m inclusive that are relatively prime to m,
+-- i.e. for which gcd (a, m) = 1
 phi :: Int -> Int
---Pre: m >= 1
+-- Pre: m >= 0
 phi m
     | m == 1 || m == 0      = m
     | otherwise             = phi' m x
@@ -37,40 +44,45 @@ phi m
             | otherwise         = phi' a (b + 1)
 
 
-
---length [x | x <- [1..m], gcd m x == 1]
-
 -- Calculates (u, v, d) the gcd (d) and Bezout coefficients (u and v)
 -- such that au + bv = d
 computeCoeffs :: Int -> Int -> (Int, Int)
+-- Pre: a, b >= 0
 computeCoeffs a b
-    | a == 0 && b > 0   = (0,1)
-    | b == 0            = (1,0)
-    | otherwise         = (v , (u - q * v))
+    | a == 0 && b > 0       = (0, 1)
+    | b == 0                = (1, 0)
+    | otherwise             = (v, (u - q * v))
     where
-        (q , r) = a `quotRem` b
-        (u , v) = computeCoeffs b r
+        (q, r) = a `quotRem` b
+        (u, v) = computeCoeffs b r
 
 
--- Inverse of a modulo m
+-- Computes a^(-1), inverse of a modulo m, where a * a^(-1) = 1 (mod m)
 inverse :: Int -> Int -> Int
+-- Pre: a >= 1, m >= 2, a /= m
 inverse a m
     = u `mod` m
-    where (u , v) = computeCoeffs a m
+    where
+        (u, v) = computeCoeffs a m
+
 
 -- Calculates (a^k mod m)
+-- Computes in O(log n) time
 modPow :: Int -> Int -> Int -> Int
+-- Pre: a, k >= 0, m >= 1
 modPow a k m
-    | k == 0            = 1 `mod` m
-    | k == 1            = a `mod` m
-    | k `mod` 2 == 0    = modPow b j m
-    | k `mod` 2 == 1    = (a * (modPow b j m)) `mod` m
+    | k == 0                = 1 `mod` m
+    | k == 1                = a `mod` m
+    | k `mod` 2 == 0        = modPow b j m
+    | k `mod` 2 == 1        = (a * (modPow b j m)) `mod` m
     where
         j = k `div` 2
         b = a ^ 2 `mod` m
 
+
 -- Returns the smallest integer that is coprime with phi
 smallestCoPrimeOf :: Int -> Int
+-- Pre: phi >= 0
 smallestCoPrimeOf phi
     = smallestCoPrimeOf' phi n
     where
@@ -85,21 +97,30 @@ smallestCoPrimeOf phi
 -- Generates keys pairs (public, private) = ((e, n), (d, n))
 -- given two "large" distinct primes, p and q
 genKeys :: Int -> Int -> ((Int, Int), (Int, Int))
+-- Pre: p, q are two different prime numbers
 genKeys p q
-    = ((e , n), (d , n))
-  where
-      n = p * q
-      e = smallestCoPrimeOf ((p - 1) * (q - 1))
-      d = inverse e ((p - 1) * (q - 1))
+    = ((e, n), (d, n))
+    where
+        n = p * q
+        e = smallestCoPrimeOf ((p - 1) * (q - 1))
+        d = inverse e ((p - 1) * (q - 1))
+
 
 -- RSA encryption/decryption
+-- Returns the ciphertext x^e mod n using plain text x and public key (e, n)
 rsaEncrypt :: Int -> (Int, Int) -> Int
-rsaEncrypt x (e , n)
-  = modPow x e n
+-- Pre: x >= 1, e, n > 1, n = p*q where p and q are distinct prime numbers,
+-- e is such that gcd(e, (p-1)*(q-1)) = 1
+rsaEncrypt x (e, n)
+    = modPow x e n
 
+
+-- Returns plain text c^d mod n using ciphertext c and private key (d, n)
 rsaDecrypt :: Int -> (Int, Int) -> Int
-rsaDecrypt c (d , n)
-  = modPow c d n
+-- Pre: c >= 1, d, n > 1, n = p*q where p and q are distinct prime numbers,
+-- d is such that e*d = 1 (mod (p-1)*(q-1))
+rsaDecrypt c (d, n)
+    = modPow c d n
 
 -------------------------------------------------------------------------------
 -- PART 2 : symmetric encryption
